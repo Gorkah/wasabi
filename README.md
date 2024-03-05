@@ -13,5 +13,12 @@ Before using this script, make sure you have the following Python libraries inst
 
 You can install these libraries using pip:
 
-pip install exifread
-pip install piexif
+
+```bash
+  pip install exifread
+  pip install piexif
+```
+
+## Feedback
+
+If you have any feedback, please reach out to us at gorkahv@icloud.com
