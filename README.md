@@ -10,6 +10,7 @@ Before using this script, make sure you have the following Python libraries inst
 
 - exifread
 - piexif
+- tinker
 
 You can install these libraries using pip:
 
@@ -17,6 +18,7 @@ You can install these libraries using pip:
 ```bash
   pip install exifread
   pip install piexif
+  pip install tk
 ```
 
 ## Feedback
