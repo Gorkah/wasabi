@@ -1,3 +1,6 @@
+import tkinter as tk
+from tkinter import filedialog
+from tkinter import messagebox
 import exifread
 import piexif
 from piexif import ExifIFD, GPSIFD
@@ -6,18 +9,22 @@ def leer_metadata_imagen(ruta_imagen):
     with open(ruta_imagen, 'rb') as archivo_imagen:
         tags = exifread.process_file(archivo_imagen)
 
-    # Imprimir todas las etiquetas (metadata) disponibles
+    metadata = ""
+    # Agregar todas las etiquetas (metadata) disponibles a un string
     for tag in tags.keys():
         if tag not in ('JPEGThumbnail', 'TIFFThumbnail', 'Filename', 'EXIF MakerNote'):
-            print(f"{tag}: {tags[tag]}")
+            metadata += f"{tag}: {tags[tag]}\n"
 
     # Obtener la ubicación GPS si está disponible
     if 'GPS GPSLatitude' in tags and 'GPS GPSLongitude' in tags:
         latitud = tags['GPS GPSLatitude']
         longitud = tags['GPS GPSLongitude']
-        print(f"Ubicación GPS: Latitud {latitud}, Longitud {longitud}")
+        metadata += f"Ubicación GPS: Latitud {latitud}, Longitud {longitud}"
     else:
-        print("No se encontró información de ubicación GPS.")
+        metadata += "No se encontró información de ubicación GPS."
+
+    # Mostrar la metadata en una ventana emergente
+    messagebox.showinfo("Metadata de la imagen", metadata)
 
 def escribir_metadata_gps(ruta_imagen, latitud, longitud):
     # Leer la imagen y su metadata existente
@@ -43,33 +50,48 @@ def escribir_metadata_gps(ruta_imagen, latitud, longitud):
     exif_bytes = piexif.dump(exif_dict)
     piexif.insert(exif_bytes, ruta_imagen)
 
-    print("Metadata GPS escrita exitosamente en la imagen.")
+    messagebox.showinfo("Éxito", "Metadata GPS escrita exitosamente en la imagen.")
 
-def main():
-    while True:
-        print("\nMENU:")
-        print("1. Leer metadata de una imagen")
-        print("2. Escribir metadata GPS en una imagen")
-        print("3. Salir")
-        opcion = input("Selecciona una opción: ")
+def seleccionar_imagen():
+    ruta_imagen = filedialog.askopenfilename(title="Seleccionar imagen", filetypes=(("Archivos de imagen", "*.jpg;*.jpeg;*.png;*.bmp;*.gif"), ("Todos los archivos", "*.*")))
+    if ruta_imagen:
+        return ruta_imagen
+    else:
+        messagebox.showwarning("Advertencia", "No se seleccionó ninguna imagen.")
+        return None
 
-        if opcion == "1":
-            # Solicitar la ruta de la imagen
-            ruta_imagen = input("Por favor, introduce la ruta de la imagen: ")
-            print("\nMetadata de la imagen:")
-            leer_metadata_imagen(ruta_imagen)
-        elif opcion == "2":
-            # Solicitar la ruta de la imagen
-            ruta_imagen = input("Por favor, introduce la ruta de la imagen: ")
-            # Solicitar las coordenadas GPS
-            latitud = float(input("Introduce la latitud (ej. 37.7749): "))
-            longitud = float(input("Introduce la longitud (ej. -122.4194): "))
-            escribir_metadata_gps(ruta_imagen, latitud, longitud)
-        elif opcion == "3":
-            print("Saliendo del programa.")
-            break
-        else:
-            print("Opción no válida. Por favor, selecciona una opción válida.")
+def leer_metadata():
+    ruta_imagen = seleccionar_imagen()
+    if ruta_imagen:
+        leer_metadata_imagen(ruta_imagen)
 
-if __name__ == "__main__":
-    main()
+def escribir_metadata():
+    ruta_imagen = seleccionar_imagen()
+    if ruta_imagen:
+        latitud = float(entry_latitud.get())
+        longitud = float(entry_longitud.get())
+        escribir_metadata_gps(ruta_imagen, latitud, longitud)
+
+# Crear ventana principal
+ventana = tk.Tk()
+ventana.title("Metadata de Imágenes")
+
+# Etiqueta y campo de entrada para latitud
+label_latitud = tk.Label(ventana, text="Latitud:")
+label_latitud.grid(row=0, column=0, padx=10, pady=5)
+entry_latitud = tk.Entry(ventana)
+entry_latitud.grid(row=0, column=1, padx=10, pady=5)
+
+# Etiqueta y campo de entrada para longitud
+label_longitud = tk.Label(ventana, text="Longitud:")
+label_longitud.grid(row=1, column=0, padx=10, pady=5)
+entry_longitud = tk.Entry(ventana)
+entry_longitud.grid(row=1, column=1, padx=10, pady=5)
+
+# Botones para leer y escribir metadata
+btn_leer_metadata = tk.Button(ventana, text="Leer Metadata", command=leer_metadata)
+btn_leer_metadata.grid(row=2, column=0, padx=10, pady=5)
+btn_escribir_metadata = tk.Button(ventana, text="Escribir Metadata GPS", command=escribir_metadata)
+btn_escribir_metadata.grid(row=2, column=1, padx=10, pady=5)
+
+ventana.mainloop()
